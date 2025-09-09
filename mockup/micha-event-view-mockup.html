@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micha's Event-View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .app {
+            max-width: 430px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .scan-button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 20px;
+            width: calc(100% - 40px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .scan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .scan-button:active {
+            transform: translateY(0);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 90px;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 20px;
+            min-height: 60vh;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-chip {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-chip.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid #667eea;
+        }
+
+        .event-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .event-card.music { border-left-color: #ff6b35; }
+        .event-card.food { border-left-color: #4ecdc4; }
+        .event-card.theater { border-left-color: #45b7d1; }
+        .event-card.family { border-left-color: #f9ca24; }
+        .event-card.nightlife { border-left-color: #6c5ce7; }
+
+        .event-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .event-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .event-category {
+            background: #f0f0f0;
+            color: #666;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        .event-details {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .event-detail {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .event-description {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .map-container {
+            height: 300px;
+            background: #e8f4f8;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .map-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ff6b35;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .map-marker:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .calendar-day {
+            background: white;
+            padding: 10px 5px;
+            text-align: center;
+            font-size: 0.8rem;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            background: #f8f9fa;
+        }
+
+        .calendar-day.has-events {
+            background: #fff3e0;
+        }
+
+        .calendar-day.today {
+            background: #667eea;
+            color: white;
+        }
+
+        .event-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff6b35;
+            margin-top: 2px;
+        }
+
+        .scanner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .scanner-frame {
+            width: 250px;
+            height: 250px;
+            border: 2px solid #ff6b35;
+            border-radius: 12px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .scanner-corners {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #ff6b35;
+        }
+
+        .corner-tl { top: -3px; left: -3px; border-right: none; border-bottom: none; }
+        .corner-tr { top: -3px; right: -3px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: -3px; left: -3px; border-right: none; border-top: none; }
+        .corner-br { bottom: -3px; right: -3px; border-left: none; border-top: none; }
+
+        .scanner-text {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .close-scanner {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4ecdc4;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            z-index: 1001;
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .search-bar {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 12px 20px;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        @keyframes scan-line {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #ff6b35;
+            animation: scan-line 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>Micha's Event-View</h1>
+            <p>Discover events around you</p>
+        </div>
+
+        <!-- Scan Button -->
+        <button class="scan-button" onclick="openScanner()">
+            📸 Scan Event QR Code
+        </button>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('calendar')">📅 Calendar</button>
+            <button class="nav-tab" onclick="showTab('map')">🗺️ Map</button>
+            <button class="nav-tab" onclick="showTab('list')">📋 List</button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <!-- Search Bar -->
+            <input type="text" class="search-bar" placeholder="Search events..." onkeyup="filterEvents(this.value)">
+
+            <!-- Filters -->
+            <div class="filters">
+                <button class="filter-chip active" onclick="filterByCategory('all')">All</button>
+                <button class="filter-chip" onclick="filterByCategory('music')">🎵 Music</button>
+                <button class="filter-chip" onclick="filterByCategory('food')">🍕 Food</button>
+                <button class="filter-chip" onclick="filterByCategory('theater')">🎭 Theater</button>
+                <button class="filter-chip" onclick="filterByCategory('family')">👨‍👩‍👧‍👦 Family</button>
+                <button class="filter-chip" onclick="filterByCategory('nightlife')">🌙 Nightlife</button>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="tab-calendar" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">23</div>
+                        <div class="stat-label">Events Scanned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                </div>
+
+                <div class="calendar-grid" id="calendar">
+                    <!-- Calendar will be generated by JavaScript -->
+                </div>
+
+                <div id="events-list">
+                    <!-- Events will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Map Tab -->
+            <div id="tab-map" class="tab-content" style="display: none;">
+                <div class="map-container" id="map">
+                    <!-- Map markers will be positioned by JavaScript -->
+                </div>
+                <div id="events-list-map">
+                    <!-- Nearby events will be shown here -->
+                </div>
+            </div>
+
+            <!-- List Tab -->
+            <div id="tab-list" class="tab-content" style="display: none;">
+                <div id="events-list-all">
+                    <!-- All events in list format -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Overlay -->
+        <div class="scanner-overlay" id="scanner">
+            <div class="scanner-frame">
+                <div class="scanner-corners corner-tl"></div>
+                <div class="scanner-corners corner-tr"></div>
+                <div class="scanner-corners corner-bl"></div>
+                <div class="scanner-corners corner-br"></div>
+                <div class="scan-line"></div>
+            </div>
+            <div class="scanner-text">
+                <h3>Scan QR Code</h3>
+                <p>Point your camera at the event QR code</p>
+            </div>
+            <button class="close-scanner" onclick="closeScanner()">Close Scanner</button>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification" id="notification"></div>
+    </div>
+
+    <script>
+        // Sample event data
+        const events = [
+            {
+                id: 1,
+                title: "Jazz & Blues Night",
+                category: "music",
+                date: "2024-07-18",
+                time: "20:00",
+                location: "Blue Note Hamburg",
+                description: "Experience the finest jazz and blues in Hamburg's most intimate venue.",
+                price: "€25",
+                coordinates: { x: 45, y: 60 }
+            },
+            {
+                id: 2,
+                title: "Street Food Festival",
+                category: "food",
+                date: "2024-07-19",
+                time: "12:00",
+                location: "Wilhelmsburg Park",
+                description: "Taste flavors from around the world at Hamburg's biggest street food festival.",
+                price: "Free",
+                coordinates: { x: 120, y: 80 }
+            },
+            {
+                id: 3,
+                title: "Shakespeare in the Park",
+                category: "theater",
+                date: "2024-07-20",
+                time: "19:30",
+                location: "Stadtpark Hamburg",
+                description: "Outdoor performance of Hamlet under the stars.",
+                price: "€15",
+                coordinates: { x: 200, y: 40 }
+            },
+            {
+                id: 4,
+                title: "Family Fun Day",
+                category: "family",
+                date: "2024-07-21",
+                time: "10:00",
+                location: "Planten un Blomen",
+                description: "Games, activities, and entertainment for the whole family.",
+                price: "Free",
+                coordinates: { x: 80, y: 120 }
+            },
+            {
+                id: 5,
+                title: "Techno Underground",
+                category: "nightlife",
+                date: "2024-07-22",
+                time: "23:00",
+                location: "Baalsaal",
+                description: "Underground techno beats in Hamburg's legendary club.",
+                price: "€20",
+                coordinates: { x: 160, y: 100 }
+            },
+            {
+                id: 6,
+                title: "Classical Concert",
+                category: "music",
+                date: "2024-07-23",
+                time: "19:00",
+                location: "Elbphilharmonie",
+                description: "Hamburg Symphony Orchestra performs Beethoven's 9th Symphony.",
+                price: "€45",
+                coordinates: { x: 100, y: 180 }
+            }
+        ];
+
+        let currentFilter = 'all';
+        let filteredEvents = [...events];
+
+        // Initialize the app
+        function init() {
+            generateCalendar();
+            displayEvents();
+            displayMapMarkers();
+        }
+
+        // Generate calendar
+        function generateCalendar() {
+            const calendar = document.getElementById('calendar');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            
+            // Days of week header
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            calendar.innerHTML = '';
+            
+            // Add day headers
+            daysOfWeek.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day';
+                dayHeader.style.fontWeight = '600';
+                dayHeader.style.background = '#f8f9fa';
+                dayHeader.textContent = day;
+                calendar.appendChild(dayHeader);
+            });
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day';
+                calendar.appendChild(emptyDay);
+            }
+            
+            // Add days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                // Check if today
+                if (day === today.getDate()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Check if has events
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasEvents = events.some(event => event.date === dateStr);
+                if (hasEvents) {
+                    dayElement.classList.add('has-events');
+                    const dot = document.createElement('div');
+                    dot.className = 'event-dot';
+                    dayElement.appendChild(dot);
+                }
+                
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        // Display events
+        function displayEvents() {
+            const containers = ['events-list', 'events-list-map', 'events-list-all'];
+            
+            containers.forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                filteredEvents.forEach(event => {
+                    const eventCard = createEventCard(event);
+                    container.appendChild(eventCard);
+                });
+            });
+        }
+
+        // Create event card
+        function createEventCard(event) {
+            const card = document.createElement('div');
+            card.className = `event-card ${event.category}`;
+            card.onclick = () => showEventDetails(event);
+            
+            card.innerHTML = `
+                <div class="event-header">
+                    <div class="event-title">${event.title}</div>
+                    <div class="event-category">${event.category.toUpperCase()}</div>
+                </div>
+                <div class="event-details">
+                    <div class="event-detail">📅 ${event.date}</div>
+                    <div class="event-detail">🕐 ${event.time}</div>
+                    <div class="event-detail">💰 ${event.price}</div>
+                </div>
+                <div class="event-details">
+                    <div class="event-detail">📍 ${event.location}</div>
+                </div>
+                <div class="event-description">${event.description}</div>
+            `;
+            
+            return card;
+        }
+
+        // Display map markers
+        function displayMapMarkers() {
+            const map = document.getElementById('map');
+            const existingMarkers = map.querySelectorAll('.map-marker');
+            existingMarkers.forEach(marker => marker.remove());
+            
+            filteredEvents.forEach(event => {
+                const marker = document.createElement('div');
+                marker.className = 'map-marker';
+                marker.style.left = event.coordinates.x + 'px';
+                marker.style.top = event.coordinates.y + 'px';
+                marker.title = event.title;
+                marker.onclick = () => showEventDetails(event);
+                map.appendChild(marker);
+            });
+        }
+
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            currentFilter = category;
+            
+            // Update filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter events
+            if (category === 'all') {
+                filteredEvents = [...events];
+            } else {
+                filteredEvents = events.filter(event => event.category === category);
+            }
+            
+            displayEvents();
+            displayMapMarkers();
+        }
+
+        // Filter events by search
+        function filterEvents(searchTerm) {
+            const term = searchTerm.toLowerCase();
+            
+            if (term === '') {
+                if (currentFilter === 'all') {
+                    filteredEvents = [...events];
+                } else {
+                    filteredEvents = events.filter(event => event.category === currentFilter);
+                }
+            } else {
+                let baseEvents = currentFilter === 'all' ? events : events.filter(event => event.category === currentFilter);
+                filteredEvents = baseEvents.filter(event => 
+                    event.title.toLowerCase().includes(term) ||
+                    event.description.toLowerCase().includes(term) ||
+                    event.location.toLowerCase().includes(term)
+                );
+            }
+            
+            displayEvents();
+            displayMapMarkers();
+        }
+
+        // Scanner functionality
+        function openScanner() {
+            document.getElementById('scanner').style.display = 'flex';
+            
+            // Simulate scan after 3 seconds
+            setTimeout(() => {
+                closeScanner();
+                showNotification('New event scanned: "Art Gallery Opening"');
+                // Could add the new event to the list here
+            }, 3000);
+        }
+
+        function closeScanner() {
+            document.getElementById('scanner').style.display = 'none';
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Show event details (could be expanded to full modal)
+        function showEventDetails(event) {
+            alert(`${event.title}\n\n${event.description}\n\nDate: ${event.date} at ${event.time}\nLocation: ${event.location}\nPrice: ${event.price}`);
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
