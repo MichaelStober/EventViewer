@@ -193,79 +193,53 @@ Measures event reach and popularity
 
 ### 3.1 Architecture Overview
 
-#### System Architecture
+#### Systemarchitektur
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Mobile App    │    │    Web App      │    │  Admin Portal   │
-│  (React Native) │    │   (React PWA)   │    │    (React)      │
-└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
-          │                      │                      │
-          └──────────────────────┼──────────────────────┘
-                                 │
-              ┌─────────────────────────────────┐
-              │         API Gateway             │
-              │      (Node.js + Express)        │
-              └─────────────┬───────────────────┘
-                            │
-    ┌───────────────────────┼───────────────────────┐
-    │                       │                       │
-┌───▼────┐          ┌──────▼──────┐          ┌─────▼─────┐
-│Events  │          │ Analytics   │          │   User    │
-│Service │          │  Service    │          │ Service   │
-└───┬────┘          └──────┬──────┘          └─────┬─────┘
-    │                      │                       │
-┌───▼────┐          ┌──────▼──────┐          ┌─────▼─────┐
-│PostgreSQL│        │    Redis    │          │   Redis   │
-│Database  │        │   Cache     │          │  Session  │
-└─────────┘         └─────────────┘          └───────────┘
+┌─────────────────────┐    ┌─────────────────────┐
+│   Mobile App (Kotlin│    │   Web App           │
+│   Android/iOS)      │    │   (Webtechnologien) │
+└─────────┬───────────┘    └─────────┬───────────┘
+     │                          │
+     └──────────────────────────┘
+      │
+    ┌───────────────────────────────┐
+    │         Backend API           │
+    │   (Python, FastAPI, Uvicorn)  │
+    └─────────────┬─────────────────┘
+        │
+      ┌──────▼───────┐
+      │ PostgreSQL   │
+      │ SQLAlchemy   │
+      └──────────────┘
 ```
 
 ### 3.2 Technology Stack
 
-#### Frontend Technologies
+
+#### Frontend Technologien
 **Mobile Application:**
-- **Framework**: React Native 0.72+ for cross-platform development
-- **Navigation**: React Navigation 6 with native stack
-- **State Management**: Redux Toolkit with RTK Query
-- **Camera**: react-native-camera with ML Kit integration
-- **Maps**: react-native-maps with Google Maps
-- **Storage**: react-native-sqlite-storage for local data
-- **Notifications**: @react-native-async-storage/async-storage
+- **Sprache/Framework**: Kotlin (Android, zukünftig auch iOS)
+- **Plattformen**: Native Android, iOS (geplant)
+- **Features**: Kamera-Integration, Karten, lokale Speicherung, Push-Notifications
 
 **Web Application:**
-- **Framework**: Next.js 13+ with App Router
-- **UI Library**: Tailwind CSS with shadcn/ui components
-- **State Management**: Zustand for lightweight state
-- **Camera**: WebRTC with getUserMedia API
-- **Maps**: Google Maps JavaScript API
-- **PWA**: Workbox for service worker management
+- **Framework**: Moderne Webtechnologien (z.B. React, Vue, Angular möglich)
+- **UI**: Responsive Design, Kartenintegration, QR-Scan via Kamera-API
 
-**Admin Dashboard:**
-- **Framework**: React 18 with TypeScript
-- **UI Framework**: Material-UI (MUI) 5
-- **Charts**: Recharts for analytics visualization
-- **Data Grid**: MUI DataGrid Pro for event management
+#### Backend Technologien
+- **Sprache**: Python
+- **Framework**: FastAPI
+- **ORM**: SQLAlchemy
+- **Datenbank**: PostgreSQL
+- **Server**: Uvicorn
 
-#### Backend Technologies
-**API Services:**
-- **Runtime**: Node.js 18+ with Express.js
-- **Language**: TypeScript for type safety
-- **Authentication**: JWT with refresh token rotation
-- **Validation**: Joi for request validation
-- **Documentation**: OpenAPI 3.0 with Swagger
 
-**Database & Storage:**
-- **Primary Database**: PostgreSQL 15 with PostGIS for location data
-- **Cache**: Redis 7 for session management and caching
-- **File Storage**: AWS S3 or Google Cloud Storage for images
-- **Search**: Elasticsearch for advanced event search
-
-**Infrastructure:**
-- **Containerization**: Docker with multi-stage builds
-- **Orchestration**: Kubernetes for production deployment
-- **CI/CD**: GitHub Actions with automated testing
-- **Monitoring**: DataDog or New Relic for performance monitoring
-- **Error Tracking**: Sentry for error logging and debugging
+#### Infrastruktur
+- **Containerisierung**: Docker mit Multi-Stage Builds
+- **Orchestrierung**: Kubernetes für produktive Deployments
+- **CI/CD**: GitHub Actions mit automatisierten Tests
+- **Monitoring**: DataDog oder New Relic für Performance-Monitoring
+- **Error Tracking**: Sentry für Fehlerprotokollierung und Debugging
 
 ### 3.3 Machine Learning & AI
 
