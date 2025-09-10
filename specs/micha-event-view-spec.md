@@ -138,8 +138,8 @@ Measures event reach and popularity
   - Location patterns and travel distance
   - Calendar availability
 
-**Privacy Requirements:**
-- All ML processing performed locally on device
+**Privacy Requirements (optional):**
+- 
 - Optional anonymous analytics with explicit opt-in
 - No personal data transmitted without user consent
 - Recommendation explanations available to users
@@ -242,8 +242,15 @@ Measures event reach and popularity
 - **Error Tracking**: Sentry für Fehlerprotokollierung und Debugging
 
 ### 3.3 Machine Learning & AI
+#### Server side Machine Vivsion 
+```python
+# Event Categorization Model Architecture
+Input: Picture (title + description)
+    ↓
+Output: Category + Confidence Score + Event Data
+```
 
-#### On-Device ML Pipeline
+#### On-Device ML Pipeline (Optional)
 ```python
 # Event Categorization Model Architecture
 Input: Event text (title + description)
@@ -343,7 +350,7 @@ POST /api/v1/recommendations/feedback
 
 #### Security Measures
 - **API Security**: Rate limiting, CORS, helmet.js
-- **Data Encryption**: AES-256 for sensitive data at rest
+- **Data Encryption**: ECC-256 for sensitive data at rest
 - **Transport Security**: TLS 1.3 for all communications
 - **Input Validation**: Comprehensive sanitization and validation
 - **Authentication**: OAuth 2.0 with PKCE for admin users
@@ -391,10 +398,22 @@ POST /api/v1/recommendations/feedback
 - **Monitoring**: Real-time performance and error tracking
 
 ---
-
+## 4.1 Core Functionalities
+- Analyze Pictures and detect events on the picture. The Eventinformation is on a Poster
+- The Result of the analysis should be a json dictionary which contains:
+  - Eventname, EVENT_LOCATION, EVENT_TIME, price (optional), describtion (optional)
+- Find the GPS coordinates of a given location 
+- Categorize the Event
+- Filter Locations of events based on a given center postiontion and a radius (in km).
 ## 4. Implementation Roadmap
-
+### Phase 1.1: Core Functionalities
+- The Projects relies hevily on AI tools. The basic functionalities should be implemented as standlone function.
+- 
 ### Phase 1: Core MVP (Months 1-3)
+- Setup a basic project for testing base functionalities.
+- Basic MV functionality to analyze Posters or Pictures with information about one event
+- Intermediat MV functionality which can detect multiple shown events on a poster
+- advanced MV functionality which can detect links or QR codes on the Poster and search on the website behind it for information about the advertised event
 - Basic QR scanning functionality
 - Event storage and display
 - Simple calendar view
